@@ -1,6 +1,7 @@
 #ifndef FLOAT_MANAGER_H
 #define FLOAT_MANAGER_H
 
+#include <Arduino.h> 
 #include "Config.h"
 #include "SensorDriver.h"
 #include "MotorDriver.h"
@@ -9,62 +10,95 @@
 
 class FloatManager {
 public:
-    // 构造函数：注入所有依赖的模块
+    // 构造函数
     FloatManager(SensorDriver* s, MotorDriver* m, CommsDriver* c, StorageDriver* st) 
         : sensor(s), motor(m), comms(c), storage(st) {}
 
     void init() {
-        // 可以在这里做一些逻辑上的复位
         currentState = IDLE;
+        Serial.println("Manager: Init Complete. State = IDLE");
     }
 
-    // 这个函数会被主循环不断调用
     void update() {
         unsigned long currentMillis = millis();
+        float currentDepth = sensor->getDepth(); 
 
-        // --- 状态机逻辑 ---
         switch (currentState) {
             case IDLE:
-                // 逻辑：如果在水面检测到入水(深度 > 0.1m)，或者收到指令
-                // 动作：发送“我活着”的包，然后开始下潜
-                comms->sendRealtimeData(currentMillis, sensor->getDepth(), 0);
-                // 模拟跳转
-                // if (sensor->getDepth() > 0.1) currentState = DIVE_1;
+                // 假设我们通过某种方式触发任务开始（比如收到WiFi指令，或者检测到入水）
+                // 这里为了演示，假设初始化时就清空一次
+                if (currentMillis < 5000) { // 开机前5秒清空
+                     // 实际逻辑建议加一个标志位，只清空一次
+                     // storage->clearLogs(); 
+                }
+                
+                // 发送心跳包 (之前的逻辑)
+                if (currentMillis - lastLogTime > 5000) {
+                    lastLogTime = currentMillis; 
+                    comms->sendRealtimeData(currentDepth);
+                    // 假设这里触发下潜：
+                    // currentState = DIVE_1;
+                    // storage->clearLogs(); // 进入下潜前务必清空旧数据！
+                }
                 break;
 
             case DIVE_1:
-                // 逻辑：PID控制电机去 TARGET_DEPTH_DEEP
-                // 记录数据：if (currentMillis - lastLogTime > LOG_INTERVAL) { ... }
-                // 检查：如果到达深度并稳定，进入 HOVER_1
-                break;
-
             case HOVER_1:
-                // 逻辑：维持深度，计时 30秒
-                // 计时结束 -> ASCEND_1
-                break;
-
             case ASCEND_1:
-                // 逻辑：PID控制去 TARGET_DEPTH_SHALLOW
+                // 1秒记录一次 (1000ms)
+                if (currentMillis - lastLogTime > 1000) {
+                    lastLogTime = currentMillis; 
+                    
+                    // 写入 Flash
+                    storage->logData(currentMillis, currentDepth);
+                    
+                    // 注意：水下不要调用 comms->sendRealtimeData
+                }
+                
+                // 这里还要写你的 PID 控制逻辑 motor->setThrust(...)
+                
+                // 模拟任务完成，跳转到回收状态
+                // if (任务完成) currentState = RECOVERY;
                 break;
-            
-            // ... 重复 Dive 2 等状态 ...
 
             case RECOVERY:
-                motor->stop(); // 或者保持最大浮力
-                // 逻辑：等待岸上指令，或者自动开始传数据
-                comms->dumpHistoryData();
+                motor->stop();
+                
+                // 只有当 WiFi 连上时才发
+                if (currentMillis - lastLogTime > 5000) { // 每5秒尝试一次批量发送
+                     lastLogTime = currentMillis;
+                     
+                     Serial.println("Manager: Uploading History Data...");
+                     
+                     // 1. 获取文件句柄
+                     File file = storage->openFileForRead();
+                     if (!file) {
+                         Serial.println("Manager: No logs found!");
+                         break;
+                     }
+                     
+                     // 2. 逐行读取并发送
+                     while (file.available()) {
+                         String line = file.readStringUntil('\n'); // 读一行 "12500,2.54"
+                         // 调用通信驱动发送这一行 (需要稍后在 CommsDriver 加这个函数)
+                         comms->sendHistoryLine(line); 
+                         delay(50); // 发慢点，防止堵塞网络
+                     }
+                     file.close();
+                     Serial.println("Manager: Upload Complete!");
+                     
+                     // 发完可以停在某个状态，防止无限重发
+                }
                 break;
         }
     }
 
 private:
-    // 引用其他模块
     SensorDriver* sensor;
     MotorDriver* motor;
     CommsDriver* comms;
     StorageDriver* storage;
 
-    // 定义状态枚举
     enum State { 
         IDLE, 
         DIVE_1, HOVER_1, ASCEND_1, HOVER_SHALLOW_1,
@@ -73,7 +107,7 @@ private:
     };
     State currentState = IDLE;
 
-    unsigned long lastLogTime = 0; // 用于控制记录频率
-    unsigned long stateStartTime = 0; // 用于计算悬停时间
+    unsigned long lastLogTime = 0; 
+    unsigned long stateStartTime = 0; 
 };
 #endif

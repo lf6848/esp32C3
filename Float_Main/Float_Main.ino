@@ -41,21 +41,21 @@ void loop() {
     float temp = mySensor.getTemp();
 
     //临时测试代码
-    Serial.print("[Time: ");
-    Serial.print(currentMillis / 1000.0); // 显示秒数
-    Serial.print("s] ");
+    // Serial.print("[Time: ");
+    // Serial.print(currentMillis / 1000.0); // 显示秒数
+    // Serial.print("s] ");
 
-    Serial.print("Depth: ");
-    Serial.print(depth, 3); // 保留3位小数
-    Serial.print(" m  |  ");
+    // Serial.print("Depth: ");
+    // Serial.print(depth, 3); // 保留3位小数
+    // Serial.print(" m  |  ");
 
-    Serial.print("Pressure: ");
-    Serial.print(pressure, 1);
-    Serial.print(" mbar  |  ");
+    // Serial.print("Pressure: ");
+    // Serial.print(pressure, 1);
+    // Serial.print(" mbar  |  ");
 
-    Serial.print("Temp: ");
-    Serial.print(temp, 2);
-    Serial.println(" C");
+    // Serial.print("Temp: ");
+    // Serial.print(temp, 2);
+    // Serial.println(" C");
 
     // 2. 更新决策 (计算状态机、PID、处理数据记录)
     myManager.update();

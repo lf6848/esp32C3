@@ -23,7 +23,6 @@ public:
         // 库会自动发送 PDF 第8页提到的 Reset 命令
         if (!sensor.init()) {
             Serial.println("Sensor: Failed to init! Checking connection...");
-            // 如果卡在这里，通常是线没接好，或者 SDA/SCL 接反了
             // 可以加入一个死循环闪灯报警，或者 retry 逻辑
             return; 
         }
