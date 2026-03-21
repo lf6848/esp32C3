@@ -40,40 +40,40 @@ void loop() {
     float pressure = mySensor.getPressure();
     float temp = mySensor.getTemp();
 
-    // //临时测试代码
-    // Serial.print("[Time: ");
-    // Serial.print(currentMillis / 1000.0); // 显示秒数
-    // Serial.print("s] ");
+    //临时测试代码
+    Serial.print("[Time: ");
+    Serial.print(currentMillis / 1000.0); // 显示秒数
+    Serial.print("s] ");
 
-    // Serial.print("Depth: ");
-    // Serial.print(depth, 3); // 保留3位小数
-    // Serial.print(" m  |  ");
+    Serial.print("Depth: ");
+    Serial.print(depth, 3); // 保留3位小数
+    Serial.print(" m  |  ");
 
-    // Serial.print("Pressure: ");
-    // Serial.print(pressure, 1);
-    // Serial.print(" mbar  |  ");
+    Serial.print("Pressure: ");
+    Serial.print(pressure, 1);
+    Serial.print(" mbar  |  ");
 
-    // Serial.print("Temp: ");
-    // Serial.print(temp, 2);
-    // Serial.println(" C");
+    Serial.print("Temp: ");
+    Serial.print(temp, 2);
+    Serial.println(" C");
 
 
-    myMotor.setThrust(1.0); 
-    Serial.println("Thrust set to 1.0 (100%)");
-    delay(2000); // 持续2秒
-    // 停止
-    myMotor.stop();
-    Serial.println("Pump stopped");
-    delay(2000); // 停止2秒
-    myMotor.setThrust(-1.0); 
-    Serial.println("Thrust set to -1.0 (-100%)");
-    delay(2000); // 持续2秒
-    // 停止
-    myMotor.brake();
-    Serial.println("Pump stopped");
-    delay(2000); // 停止2秒
-    // 2. 更新决策 (计算状态机、PID、处理数据记录)
-    myManager.update();
+    // myMotor.setThrust(1.0); 
+    // Serial.println("Thrust set to 1.0 (100%)");
+    // delay(2000); // 持续2秒
+    // // 停止
+    // myMotor.stop();
+    // Serial.println("Pump stopped");
+    // delay(2000); // 停止2秒
+    // myMotor.setThrust(-1.0); 
+    // Serial.println("Thrust set to -1.0 (-100%)");
+    // delay(2000); // 持续2秒
+    // // 停止
+    // myMotor.brake();
+    // Serial.println("Pump stopped");
+    // delay(2000); // 停止2秒
+    // // 2. 更新决策 (计算状态机、PID、处理数据记录)
+    // myManager.update();
 
     // 3. (可选) 如果MotorDriver需要平滑控制，也可以在这里加 update
     // myMotor.update();

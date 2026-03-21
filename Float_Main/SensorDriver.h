@@ -28,6 +28,33 @@ public:
         sensor.setFluidDensity(FLUID_DENSITY); 
 
         Serial.println("Sensor: Init Success! (Model forced to 30BA)");
+
+        tare(); 
+    }
+
+    void tare() {
+        Serial.print("Sensor: Calibrating zero depth (DO NOT SUBMERGE)... ");
+        
+        // 丢弃前几次不稳定的读取
+        for(int i = 0; i < 3; i++) {
+            sensor.read();
+            delay(10);
+        }
+        // 读取 10 次求平均值，消除波动噪声
+        float sum = 0;
+        const int samples = 10;
+        for(int i = 0; i < samples; i++) {
+            sensor.read();
+            sum += sensor.depth(); // 获取此时空气中的假深度
+            delay(10); 
+        }
+        
+        // 记录空气中的深度偏移量
+        depthOffset = sum / samples;
+        
+        Serial.print("Done. Offset: ");
+        Serial.print(depthOffset);
+        Serial.println(" m");
     }
 
     void update() {
@@ -37,7 +64,7 @@ public:
         sensor.read();
 
         // 获取结果
-        currentDepth = sensor.depth();       // 单位: m (米)
+        currentDepth = sensor.depth() - depthOffset; // 单位: m (米)
         currentPressure = sensor.pressure(); // 单位: mbar (毫巴)
         currentTemp = sensor.temperature();  // 单位: C (摄氏度)
         
@@ -59,6 +86,7 @@ public:
 
 private:
     MS5837 sensor; // 实例化库对象
+    float depthOffset = 0.0; 
     float currentDepth = 0.0;
     float currentPressure = 0.0;
     float currentTemp = 0.0;
