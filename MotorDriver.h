@@ -37,8 +37,7 @@ public:
 
     // 设置推力方法
     void setThrust(float thrust) {
-        int dutyCycle_bits = (1 << PUMP_PWM_RESOLUTION) - 1; // PWM分辨率对应的最大值 (比如8位就是255)
-
+        int dutyCycle_bits = (1 << PUMP_PWM_RESOLUTION) - 1; // PWM分辨率对应的最大值
         // 确保thrust在-1.0到1.0之间，防止越界
         thrust = constrain(thrust, -1.0, 1.0);
 
